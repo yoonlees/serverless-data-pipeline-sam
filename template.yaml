@@ -9,7 +9,7 @@ Parameters:
     Description: "The API Gateway Stage name (e.g. dev, prod, etc.)"
   FirehoseS3Prefix:
     Type: String
-    Default: firehose/
+    Default: data/
     Description: "The S3 Key prefix for Kinesis Firehose."
   FirehoseCompressionFormat:
     Type: String
