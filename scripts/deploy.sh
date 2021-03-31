@@ -1,7 +1,7 @@
-bucket="clouda-sam-tests"
+bucket="lrs-data-pipeline-package"
 template="template.yaml"
 output="packaged.yaml"
-stack="sam-sls-pipeline"
+stack="sam-lrs-data-pipeline"
 
 sam package \
     --template-file $template \
