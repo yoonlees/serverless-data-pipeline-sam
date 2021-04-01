@@ -25,3 +25,6 @@ delete:
 	aws cloudformation delete-stack --stack-name ${STACK_NAME}
 	read enter
 	aws cloudformation delete-stack --stack-name ${STACK_NAME}
+
+local-invoke: 
+	sam local invoke StreamProcessFunction --event events/event.json

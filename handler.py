@@ -54,5 +54,38 @@ def transform_data(data):
     # example: you can add new fields
     # data['new_value'] = True
 
+    # flatten json to remove the nested dictionary
+    data = flatten_json(data)
+
     # return the transformed data dictionary
     return data
+
+def flatten_json(data):
+    '''
+    Flatten the json to csv file
+    '''
+    payload_keys = ['@context', 'id', 'type', 'profile', 
+                    'eventTime', 'actor', 'action', 'object']
+    event_data = {}
+    # Add envelope data 
+    for k, v in data.items():
+        if k != 'data':
+            event_data.update({k: v})
+
+    columns = {} 
+    # Add the payloads
+    payloads = data.get('data')
+    for payload in payloads:
+        for key in payload_keys:
+            if payload.get(key):
+                # Flatten actor and object data 
+                if key in ['actor', 'object']:
+                    item = {key+'_id': payload.get(key).get('id')}
+                    columns.update(item)
+                    item = {key+'_type': payload.get(key).get('type')}
+                    columns.update(item)
+                else:
+                    columns.update({key: payload.get(key)})
+        event_data.update(columns)
+
+    return event_data
