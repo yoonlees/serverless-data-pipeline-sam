@@ -28,3 +28,6 @@ delete:
 
 local-invoke: 
 	sam local invoke StreamProcessFunction --event events/event.json
+
+track: 
+	scripts/track.sh
