@@ -1,6 +1,9 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Parameters:
+  RawBucket: 
+    Description: "Name of the Bucket to store the Raw data."
+    Type: String
   PublicKeyParameter:
     Type: String
     Description: "Public SSH Key for Creating an AWS Glue Development Endpoint."
@@ -38,15 +41,15 @@ Resources:
                 Action:
                   - "s3:ListBucket"
                 Effect: "Allow"
-                Resource: !Sub "arn:aws:s3:::aws-glue-datasets-${AWS::Region}"
+                Resource: !Sub "arn:aws:s3:::${RawBucket}"
                 Condition:
                   StringEquals:
-                    "s3:prefix": "examples/githubarchive/month/"
+                    "s3:prefix": "examples/"
               -
                 Action:
                   - "s3:GetObject"
                 Effect: "Allow"
-                Resource: !Sub "arn:aws:s3:::aws-glue-datasets-${AWS::Region}/examples/githubarchive/month/*"
+                Resource: !Sub "arn:aws:s3:::${RawBucket}/examples/*"
         -
           PolicyName: "OutputS3Access"
           PolicyDocument:
@@ -81,7 +84,7 @@ Resources:
     Properties:
       CatalogId: !Ref AWS::AccountId
       DatabaseInput:
-        Name: "githubarchive_month"
+        Name: "glue-canvas"
         Description: "Database for Glue Partition blog post example."
         
   PartitionCrawler:
@@ -92,7 +95,7 @@ Resources:
       DatabaseName: !Ref PartitionDatabase
       Targets:
         S3Targets:
-          - Path: !Sub "s3://aws-glue-datasets-${AWS::Region}/examples/githubarchive/month/data/"
+          - Path: !Ref RawBucket
 
   PartitionDevEndpoint:
     Type: "AWS::Glue::DevEndpoint"

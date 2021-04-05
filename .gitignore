@@ -102,3 +102,5 @@ ENV/
 
 # packaged artifact
 packaged.yaml
+
+samconfig.toml

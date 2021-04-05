@@ -1,4 +1,4 @@
-TEMPLATE_FILE := glue_cloudformation.yaml
+TEMPLATE_FILE := crawler_cloudformation.yaml
 STACK_NAME := create-glue-job
 S3_BUCKET_PACKAGE := lrs-data-pipeline-package
 OUTPUT := packaged.yaml
@@ -17,9 +17,7 @@ package:
 	--output-template-file ${OUTPUT}
 
 deploy: package
-	sam deploy --template-file ${OUTPUT} \
-	--stack-name ${STACK_NAME} \
-	--capabilities CAPABILITY_IAM
+	sam deploy --guided --template-file ${OUTPUT} \
 
 delete: 
 	aws cloudformation delete-stack --stack-name ${STACK_NAME}
