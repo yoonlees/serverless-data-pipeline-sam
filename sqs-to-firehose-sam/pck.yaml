@@ -1,8 +1,8 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: 'splunk-to-authman
+Description: 'sqs-to-firehose
 
-  SAM Template for splunk-to-authman
+  SAM Template for sqs-to-firehose
 
   '
 Globals:
@@ -11,12 +11,12 @@ Globals:
 Parameters:
   S3BucketName:
     Type: String
-    Default: splunk-to-authman-data
-    Description: Bucket name for files saved in S3 for splunk-to-authman
+    Default: sqs-to-firehose-data
+    Description: Bucket name for files saved in S3 for sqs-to-firehose
   S3ObjPrefix:
     Type: String
-    Default: splunk-to-authman-DEV
-    Description: Prefix for files saved in S3 for splunk-to-authman
+    Default: sqs-to-firehose-DEV
+    Description: Prefix for files saved in S3 for sqs-to-firehose
   LambdaMonitorTemplateURL:
     Type: String
     Description: URL to the template for Lambda monitoring.
@@ -52,7 +52,7 @@ Resources:
     Properties:
       FunctionName:
         Fn::Sub: ${AWS::StackName}-LambdaFunction
-      CodeUri: s3://splunk-to-authman-package/753d74f0de374f0197508877c565522d
+      CodeUri: s3://sqs-to-firehose-package/753d74f0de374f0197508877c565522d
       Handler: app.lambda_handler
       Runtime: python3.7
       Environment:
@@ -101,10 +101,10 @@ Resources:
         - HasLogEncryption
         - Ref: LogKMSKeyARN
         - Ref: AWS::NoValue
-  CallAuthmanApi:
+  CallFirehose:
     Type: AWS::SNS::Topic
     Properties:
-      DisplayName: call-authman-api
+      DisplayName: call-firehose
   Queue:
     Type: AWS::SQS::Queue
   QueuePolicy:
@@ -134,19 +134,19 @@ Resources:
       Protocol: sqs
 Outputs:
   LambdaFunction:
-    Description: splunk-to-authman Lambda Function ARN
+    Description: sqs-to-firehose Lambda Function ARN
     Value:
       Fn::GetAtt:
       - LambdaFunction
       - Arn
   QueueARN:
-    Description: splunk-to-authman SQS ARN
+    Description: sqs-to-firehose SQS ARN
     Value:
       Fn::GetAtt:
       - Queue
       - Arn
   QueueName:
-    Description: splunk-to-authman SQS Queue Name
+    Description: sqs-to-firehose SQS Queue Name
     Value:
       Fn::GetAtt:
       - Queue
