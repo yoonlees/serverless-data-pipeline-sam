@@ -1,5 +1,9 @@
 stack="sam-lrs-data-pipeline"
 url=$(aws cloudformation describe-stacks --stack-name $stack --query Stacks[0].Outputs[0].OutputValue --output text)
+
+echo $url
+exit
+
 record='''{
   "sensor": "https://example.edu/sensors/1",
   "sendTime": "2020-01-15T11:05:01.000Z",

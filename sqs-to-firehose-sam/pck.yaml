@@ -1,0 +1,153 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'splunk-to-authman
+
+  SAM Template for splunk-to-authman
+
+  '
+Globals:
+  Function:
+    Timeout: 3
+Parameters:
+  S3BucketName:
+    Type: String
+    Default: splunk-to-authman-data
+    Description: Bucket name for files saved in S3 for splunk-to-authman
+  S3ObjPrefix:
+    Type: String
+    Default: splunk-to-authman-DEV
+    Description: Prefix for files saved in S3 for splunk-to-authman
+  LambdaMonitorTemplateURL:
+    Type: String
+    Description: URL to the template for Lambda monitoring.
+    Default: ''
+  LambdaMonitorAlarmTopicARN:
+    Type: String
+    Description: ARN of the SNS Topic that receives alarm notifications.
+    Default: ''
+  LogSubscriptionARN:
+    Type: String
+    Description: ARN to subscribe CloudWatchLogs to.
+    Default: ''
+  LogKMSKeyARN:
+    Type: String
+    Description: ARN to encrypt Logs with.
+    Default: ''
+Conditions:
+  HasLambdaMonitor:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: LambdaMonitorTemplateURL
+      - ''
+  HasLogEncryption:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: LogKMSKeyARN
+      - ''
+Resources:
+  LambdaFunction:
+    Type: AWS::Serverless::Function
+    DependsOn:
+    - LambdaFunctionLogs
+    Properties:
+      FunctionName:
+        Fn::Sub: ${AWS::StackName}-LambdaFunction
+      CodeUri: s3://splunk-to-authman-package/753d74f0de374f0197508877c565522d
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Environment:
+        Variables:
+          QUEUE_NAME:
+            Fn::GetAtt:
+            - Queue
+            - QueueName
+          S3_BUCKET:
+            Ref: S3BucketName
+          S3_OBJ_PREFIX:
+            Ref: S3ObjPrefix
+      Events:
+        CronSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0,15,30,45 * * * ? *)
+            Description: run every 15 minutes
+      Policies:
+      - AWSLambdaBasicExecutionRole
+      - S3WritePolicy:
+          BucketName:
+            Ref: S3BucketName
+      - SQSPollerPolicy:
+          QueueName:
+            Fn::GetAtt:
+            - Queue
+            - QueueName
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - sqs:GetQueueUrl
+          Resource:
+            Fn::GetAtt:
+            - Queue
+            - Arn
+  LambdaFunctionLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Sub: /aws/lambda/${AWS::StackName}-LambdaFunction
+      RetentionInDays: 30
+      KmsKeyId:
+        Fn::If:
+        - HasLogEncryption
+        - Ref: LogKMSKeyARN
+        - Ref: AWS::NoValue
+  CallAuthmanApi:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: call-authman-api
+  Queue:
+    Type: AWS::SQS::Queue
+  QueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+      - Ref: Queue
+      PolicyDocument:
+        Statement:
+        - Action: sqs:SendMessage
+          Effect: Allow
+          Resource:
+            Fn::GetAtt:
+            - Queue
+            - Arn
+          Principal:
+            Service: sns.amazonaws.com
+  QueueSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn:
+        Ref: CallAuthmanApi
+      Endpoint:
+        Fn::GetAtt:
+        - Queue
+        - Arn
+      Protocol: sqs
+Outputs:
+  LambdaFunction:
+    Description: splunk-to-authman Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - LambdaFunction
+      - Arn
+  QueueARN:
+    Description: splunk-to-authman SQS ARN
+    Value:
+      Fn::GetAtt:
+      - Queue
+      - Arn
+  QueueName:
+    Description: splunk-to-authman SQS Queue Name
+    Value:
+      Fn::GetAtt:
+      - Queue
+      - QueueName

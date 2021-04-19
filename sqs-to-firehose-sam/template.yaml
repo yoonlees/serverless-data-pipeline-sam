@@ -1,0 +1,131 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  splunk-to-authman
+
+  SAM Template for splunk-to-authman
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Parameters:
+  S3BucketName:
+    Type: String
+    Default: "splunk-to-authman-data"
+    Description: "Bucket name for files saved in S3 for splunk-to-authman"
+  S3ObjPrefix:
+    Type: String
+    Default: "splunk-to-authman-DEV"
+    Description: "Prefix for files saved in S3 for splunk-to-authman"
+  LambdaMonitorTemplateURL:
+    Type: String
+    Description: URL to the template for Lambda monitoring.
+    Default: ""
+  LambdaMonitorAlarmTopicARN:
+    Type: String
+    Description: ARN of the SNS Topic that receives alarm notifications.
+    Default: ""
+  LogSubscriptionARN:
+    Type: String
+    Description: ARN to subscribe CloudWatchLogs to.
+    Default: ""
+  LogKMSKeyARN:
+    Type: String
+    Description: ARN to encrypt Logs with.
+    Default: ""
+
+Conditions:
+  HasLambdaMonitor: !Not [ !Equals [ !Ref LambdaMonitorTemplateURL, "" ] ]
+  HasLogEncryption: !Not [ !Equals [ !Ref LogKMSKeyARN, "" ] ]
+
+Resources:
+  LambdaFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    DependsOn:
+      - LambdaFunctionLogs
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-LambdaFunction"
+      CodeUri: lambda/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Environment:
+        Variables:
+          QUEUE_NAME:
+            !GetAtt Queue.QueueName
+          S3_BUCKET:
+            !Ref S3BucketName
+          S3_OBJ_PREFIX:
+            !Ref S3ObjPrefix
+      Events:
+        CronSchedule:
+          Type: Schedule # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Schedule: "cron(0,15,30,45 * * * ? *)"
+            Description: "run every 15 minutes"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - S3WritePolicy:
+            BucketName:
+              !Ref S3BucketName
+        - SQSPollerPolicy:
+            QueueName:
+              !GetAtt Queue.QueueName
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - sqs:GetQueueUrl
+              Resource:
+                !GetAtt Queue.Arn
+  LambdaFunctionLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${AWS::StackName}-LambdaFunction"
+      RetentionInDays: 30
+      KmsKeyId: !If [ HasLogEncryption, !Ref LogKMSKeyARN, !Ref "AWS::NoValue" ]
+
+  # sns topics that the lambda depends on
+  CallAuthmanApi:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: "call-authman-api"
+
+  Queue:
+    Type: AWS::SQS::Queue
+
+  QueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref Queue
+      PolicyDocument:
+        Statement:
+          - Action: sqs:SendMessage
+            Effect: Allow
+            Resource: !GetAtt Queue.Arn
+            Principal:
+              Service: sns.amazonaws.com
+
+  QueueSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref CallAuthmanApi
+      Endpoint: !GetAtt Queue.Arn
+      Protocol: sqs
+
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  LambdaFunction:
+    Description: "splunk-to-authman Lambda Function ARN"
+    Value: !GetAtt LambdaFunction.Arn
+  QueueARN:
+    Description: "splunk-to-authman SQS ARN"
+    Value: !GetAtt Queue.Arn
+  QueueName:
+    Description: "splunk-to-authman SQS Queue Name"
+    Value: !GetAtt Queue.QueueName
