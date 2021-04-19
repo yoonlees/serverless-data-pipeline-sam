@@ -13,11 +13,11 @@ Globals:
 Parameters:
   S3BucketName:
     Type: String
-    Default: "sqs-to-firehose-data"
+    Default: "sqs-to-firehose"
     Description: "Bucket name for files saved in S3 for sqs-to-firehose"
   S3ObjPrefix:
     Type: String
-    Default: "sqs-to-firehose-DEV"
+    Default: "data"
     Description: "Prefix for files saved in S3 for sqs-to-firehose"
   LambdaMonitorTemplateURL:
     Type: String
@@ -53,7 +53,7 @@ Resources:
       Environment:
         Variables:
           QUEUE_NAME:
-            !GetAtt Queue.QueueName
+            !GetAtt StreamQueue.QueueName
           S3_BUCKET:
             !Ref S3BucketName
           S3_OBJ_PREFIX:
@@ -71,14 +71,14 @@ Resources:
               !Ref S3BucketName
         - SQSPollerPolicy:
             QueueName:
-              !GetAtt Queue.QueueName
+              !GetAtt StreamQueue.QueueName
         - Version: '2012-10-17'
           Statement:
             - Effect: Allow
               Action:
                 - sqs:GetQueueUrl
               Resource:
-                !GetAtt Queue.Arn
+                !GetAtt StreamQueue.Arn
   LambdaFunctionLogs:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -87,32 +87,33 @@ Resources:
       KmsKeyId: !If [ HasLogEncryption, !Ref LogKMSKeyARN, !Ref "AWS::NoValue" ]
 
   # sns topics that the lambda depends on
-  CallFirehose:
+  StreamTopic:
     Type: AWS::SNS::Topic
     Properties:
       DisplayName: "call-firehose"
 
-  Queue:
+  # sqs queues that the lambda uses
+  StreamQueue:
     Type: AWS::SQS::Queue
 
   QueuePolicy:
     Type: AWS::SQS::QueuePolicy
     Properties:
       Queues:
-        - !Ref Queue
+        - !Ref StreamQueue
       PolicyDocument:
         Statement:
           - Action: sqs:SendMessage
             Effect: Allow
-            Resource: !GetAtt Queue.Arn
+            Resource: !GetAtt StreamQueue.Arn
             Principal:
               Service: sns.amazonaws.com
 
   QueueSubscription:
     Type: AWS::SNS::Subscription
     Properties:
-      TopicArn: !Ref CallAuthmanApi
-      Endpoint: !GetAtt Queue.Arn
+      TopicArn: !Ref StreamTopic
+      Endpoint: !GetAtt StreamQueue.Arn
       Protocol: sqs
 
 
@@ -125,7 +126,7 @@ Outputs:
     Value: !GetAtt LambdaFunction.Arn
   QueueARN:
     Description: "sqs-to-firehose SQS ARN"
-    Value: !GetAtt Queue.Arn
+    Value: !GetAtt StreamQueue.Arn
   QueueName:
     Description: "sqs-to-firehose SQS Queue Name"
-    Value: !GetAtt Queue.QueueName
+    Value: !GetAtt StreamQueue.QueueName
