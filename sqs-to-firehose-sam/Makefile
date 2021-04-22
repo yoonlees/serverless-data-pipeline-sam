@@ -1,6 +1,8 @@
 STACK_NAME := sqs-to-firehose
+SQS_QUEUE := https://sqs.us-east-2.amazonaws.com/430229884637/sqs-to-firehose-StreamQueue-12E2GOKXBXVS1
 
 export STACK_NAME := ${STACK_NAME}
+export SQS_QUEUE := ${SQS_QUEUE}
 
 deploy: 
 	sam deploy --guided
@@ -15,3 +17,5 @@ lambda-test:
 	aws lambda invoke --function-name sqs-to-firehose-LambdaFunction \
           --payload file://input.txt outputfile.txt
 
+sqs-test: 
+	aws sqs send-message --queue-url ${SQS_QUEUE} --message-body file://message.json --delay-seconds 10

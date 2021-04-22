@@ -11,6 +11,10 @@ Globals:
     Timeout: 3
 
 Parameters:
+  FirehoseDeliveryStreamName:
+    Type: String
+    Default: "sam-lrs-data-pipeline-DeliveryStream-8M7sKQ88lQhF"
+    Description: "Kinesis Firehose delivery stream name for sqs-to-firehose"
   FirehoseDeliveryStreamARN:
     Type: String
     Default: "arn:aws:firehose:us-east-2:430229884637:deliverystream/sam-lrs-data-pipeline-DeliveryStream-8M7sKQ88lQhF"
@@ -49,9 +53,9 @@ Resources:
       Environment:
         Variables:
           QUEUE_NAME:
-            !GetAtt StreamQueue.QueueName
-          FIREHOSE_DELIVERY_STREAM:
-            !Ref FirehoseDeliveryStreamARN
+            !GetAtt StreamQueue.Arn
+          FIREHOSE_DELIVERY_STREAM_NAME:
+            !Ref FirehoseDeliveryStreamName
       Events:
         SqsJobQueue:
           Type: SQS
@@ -60,6 +64,9 @@ Resources:
             BatchSize: 1
       Policies:
         - AWSLambdaBasicExecutionRole
+        - FirehoseWritePolicy:
+            DeliveryStreamName:
+              !Ref FirehoseDeliveryStreamName
         - SQSPollerPolicy:
             QueueName:
               !GetAtt StreamQueue.QueueName
@@ -70,11 +77,6 @@ Resources:
                 - sqs:GetQueueUrl
               Resource:
                 - !GetAtt StreamQueue.Arn
-            - Effect: Allow
-              Action:
-                - firehose:*
-              Resource:
-                - !Ref FirehoseDeliveryStreamARN
   LambdaFunctionLogs:
     Type: AWS::Logs::LogGroup
     Properties:

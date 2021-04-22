@@ -8,4 +8,4 @@ s3_prefix = "sqs-to-firehose"
 region = "us-east-2"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "FirehoseDeliveryStreamARN=\"arn:aws:firehose:us-east-2:430229884637:deliverystream/sam-lrs-data-pipeline-DeliveryStream-8M7sKQ88lQhF\" LambdaMonitorTemplateURL=\"\" LambdaMonitorAlarmTopicARN=\"\" LogSubscriptionARN=\"\" LogKMSKeyARN=\"\""
+parameter_overrides = "FirehoseDeliveryStreamName=\"sam-lrs-data-pipeline-DeliveryStream-8M7sKQ88lQhF\" FirehoseDeliveryStreamARN=\"arn:aws:firehose:us-east-2:430229884637:deliverystream/sam-lrs-data-pipeline-DeliveryStream-8M7sKQ88lQhF\" LambdaMonitorTemplateURL=\"\" LambdaMonitorAlarmTopicARN=\"\" LogSubscriptionARN=\"\" LogKMSKeyARN=\"\""
