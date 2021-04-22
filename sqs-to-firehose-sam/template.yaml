@@ -11,14 +11,10 @@ Globals:
     Timeout: 3
 
 Parameters:
-  S3BucketName:
+  FirehoseDeliveryStreamARN:
     Type: String
-    Default: "sqs-to-firehose"
-    Description: "Bucket name for files saved in S3 for sqs-to-firehose"
-  S3ObjPrefix:
-    Type: String
-    Default: "data"
-    Description: "Prefix for files saved in S3 for sqs-to-firehose"
+    Default: "arn:aws:firehose:us-east-2:430229884637:deliverystream/sam-lrs-data-pipeline-DeliveryStream-8M7sKQ88lQhF"
+    Description: "ARN of the Kinesis Firehose delivery stream name for sqs-to-firehose"
   LambdaMonitorTemplateURL:
     Type: String
     Description: URL to the template for Lambda monitoring.
@@ -54,10 +50,8 @@ Resources:
         Variables:
           QUEUE_NAME:
             !GetAtt StreamQueue.QueueName
-          S3_BUCKET:
-            !Ref S3BucketName
-          S3_OBJ_PREFIX:
-            !Ref S3ObjPrefix
+          FIREHOSE_DELIVERY_STREAM:
+            !Ref FirehoseDeliveryStreamARN
       Events:
         SqsJobQueue:
           Type: SQS
@@ -66,9 +60,6 @@ Resources:
             BatchSize: 1
       Policies:
         - AWSLambdaBasicExecutionRole
-        - S3WritePolicy:
-            BucketName:
-              !Ref S3BucketName
         - SQSPollerPolicy:
             QueueName:
               !GetAtt StreamQueue.QueueName
@@ -78,7 +69,12 @@ Resources:
               Action:
                 - sqs:GetQueueUrl
               Resource:
-                !GetAtt StreamQueue.Arn
+                - !GetAtt StreamQueue.Arn
+            - Effect: Allow
+              Action:
+                - firehose:*
+              Resource:
+                - !Ref FirehoseDeliveryStreamARN
   LambdaFunctionLogs:
     Type: AWS::Logs::LogGroup
     Properties:
