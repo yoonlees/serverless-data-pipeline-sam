@@ -1,0 +1,11 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "sqs-to-firehose"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-myor7j3zui4c"
+s3_prefix = "sqs-to-firehose"
+region = "us-east-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "S3BucketName=\"sqs-to-firehose\" S3ObjPrefix=\"data\" LambdaMonitorTemplateURL=\"\" LambdaMonitorAlarmTopicARN=\"\" LogSubscriptionARN=\"\" LogKMSKeyARN=\"\""

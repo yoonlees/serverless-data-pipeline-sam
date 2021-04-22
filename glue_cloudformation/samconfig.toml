@@ -1,0 +1,11 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "create-glue-job"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-myor7j3zui4c"
+s3_prefix = "create-glue-job"
+region = "us-east-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_NAMED_IAM"
+parameter_overrides = "RawBucket=\"glue-crawler-datasets\" PublicKeyParameter=\"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDfwpv8eyfrP5j2q19dDhrXOMfPdmhGRYz8FDHrN/30VELHOR+EXYBwQfOytPnT2cPSQk/PXETyhhOOiAB9jkuyxNiSOTgBH1+jljjrDipwhk8B0To8723MM7dU/b2uIXq4QQDm2v9O4Z2DUNS8lhpY5oQ0sUYlq3bJP0KkICt9c7rIGEnFejDBxZjYZ5YjY7GNpVzOQsyx1t7wnl7wlH/HbkmHh969pW5WxJINfoJ/krxIL2Lh1L4wFulruNaXh4GqEz9oN5UYgDsXuRPZQ4+Rn1+9Mc0mdZBhktrmq47dZv+AGIf8m2x1hC37S0p4pKdl5knGWR8AWwulMriwnkxv+v0h4dZbKkxl8lPJu7sZ5ga5FgpywzO75QCewG7hbyOg1W3TNv5nWdLf4UK4JCs4OZ0ACv3x5XIMzPK3EDI5pfG/qyoZ8Uo8ctOAsYG50XvQopPl4Xw7lXGQa6wpp40KwD2ZGzr5dKHbnPp2Y47nTXJ98dJ3SoMeCLQJ5xLEesSyO4MIqsJo0kfiQom+C4H/+0GZGEr5/L/KFERHMKVv/5Q5Q15p4GuDJiphoqqrXmeTIOBSW5Q8jh2090XWKm6tQaMscjkG6/LiCY8GVqNNYtUWGBWoNeOPKUDP/QGEH6OOBHVyMkB4jjBerB3Jg/V2H9Qzu+m6FUs+Exswu8WRPQ== yoonlees@illinois.edu\" OutputBucketParameter=\"glue-crawler-output\" OutputPrefixParameter=\"script\""

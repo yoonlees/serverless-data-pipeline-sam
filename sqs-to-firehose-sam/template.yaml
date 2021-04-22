@@ -59,11 +59,11 @@ Resources:
           S3_OBJ_PREFIX:
             !Ref S3ObjPrefix
       Events:
-        CronSchedule:
-          Type: Schedule # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+        SqsJobQueue:
+          Type: SQS
           Properties:
-            Schedule: "cron(0,15,30,45 * * * ? *)"
-            Description: "run every 15 minutes"
+            Queue: !GetAtt StreamQueue.Arn
+            BatchSize: 1
       Policies:
         - AWSLambdaBasicExecutionRole
         - S3WritePolicy:
