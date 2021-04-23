@@ -1,5 +1,5 @@
 STACK_NAME := sqs-to-firehose
-SQS_QUEUE := https://sqs.us-east-2.amazonaws.com/430229884637/sqs-to-firehose-StreamQueue-12E2GOKXBXVS1
+SQS_QUEUE := https://sqs.us-east-2.amazonaws.com/430229884637/sqs-to-firehose-StreamQueue-1CGY2CJNCP4WL
 
 export STACK_NAME := ${STACK_NAME}
 export SQS_QUEUE := ${SQS_QUEUE}
